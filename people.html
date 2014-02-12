@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<!--[if lt IE 7]>  <html class="ie ie6 lte9 lte8 lte7"> <![endif]-->
+<!--[if IE 7]>     <html class="ie ie7 lte9 lte8 lte7"> <![endif]-->
+<!--[if IE 8]>     <html class="ie ie8 lte9 lte8"> <![endif]-->
+<!--[if IE 9]>     <html class="ie ie9 lte9"> <![endif]-->
+<!--[if gt IE 9]>  <html> <![endif]-->
+<!--[if !IE]><!--><html class="no-js"><!--<![endif]-->
+
+<head>
+    <meta charset="utf-8" />
+    <title>People Exercise</title>
+	<link rel="stylesheet" type="text/css" href="css/styles.css" />
+</head>
+<body>
+	
+	<div id="listPeople">
+
+
+	</div>
+
+	<input type="button" value="Sort by first name" id="sortFirstName" />
+	<input type="button" value="Sort by last name" id="sortFamilyName" />
+	<input type="button" value="Sort by birth date" id="sortBirthDate" />
+
+
+	<script src="http://code.jquery.com/jquery-1.10.1.js"></script>
+	<script src="js/person-data.js"></script>
+	<script>
+		
+		$(function () {
+
+			var personDiv,
+				listPeople = $('#listPeople'),
+				birthDate;
+								
+			// Clears and displays the list of people from the person-data object array
+			function displayPeople() {
+				listPeople.html('');				
+				for (var i = 0; i < people.length; i++) {
+					birthDate = calculateCD(people[i].birthDayNumber);
+					personDiv = $('<div />');
+					personDiv.attr('class', 'person');
+					personDiv.attr('title', people[i].name);
+					personDiv.html(
+						"<div class='name'>" + people[i].name + "</div>" +
+						"Birth Date: " + birthDate + "<br />" +
+						"Country: " + people[i].birthCountry
+					);
+					listPeople.append(personDiv);
+				}
+			}
+			
+			// Borrowed code to convert Julian day to Gregorian date
+			function calculateCD(julianDate) {
+				with (Math) {
+					X = parseFloat(julianDate) + 0.5
+					Z = floor(X)
+					F = X - Z
+					Y = floor((Z - 1867216.25) / 36524.25)
+					A = Z + 1 + Y - floor(Y / 4)
+					B = A + 1524
+					C = floor((B - 122.1) / 365.25)
+					D = floor(365.25 * C)
+					G = floor((B - D) / 30.6001)
+					month = (G < 13.5) ? (G - 1) : (G - 13)
+					year = (month < 2.5) ? (C - 4715) : (C - 4716)
+					month -= 1 // month in JavaScript is from 0 to 11
+					UT = B - D - floor(30.6001 * G) + F
+					day = floor(UT)
+					UT -= floor(UT)
+					UT *= 24;
+					hour = floor(UT)
+					UT -= floor(UT)
+					UT *= 60
+					minute = floor(UT)
+					UT -= floor(UT)
+					UT *= 60
+					second = round(UT)
+				}
+
+				// Format and return date
+				birthInfo = new Date(Date.UTC(year, month, day, hour, minute, second))
+				birthMonth = birthInfo.getUTCMonth() + 1,
+				birthDay = birthInfo.getUTCDate(),
+				birthYear = birthInfo.getFullYear();
+				return birthMonth + "/" + birthDay + "/" + birthYear;
+			}
+
+
+			// Sort object array by various names and birthdates
+			function sortPeople(sortType) {
+				people.sort(function (a, b) {
+					if (sortType === 'birthDate') {
+						var nameA = a.birthDayNumber, nameB = b.birthDayNumber;
+					}
+					else if (sortType === 'firstName') {
+						var nameA = a.name.toLowerCase(), nameB = b.name.toLowerCase();
+					}
+					else {
+						var nameA = a.familyName.toLowerCase(), nameB = b.familyName.toLowerCase();
+					} 
+
+					if (nameA < nameB) //sort string ascending
+						return -1
+					if (nameA > nameB)
+						return 1
+
+					// Sub sort birthday
+					if (sortType != 'birthDate' && nameA === nameB) {
+						if (a.birthDayNumber < b.birthDayNumber) {
+							return -1
+						}
+						if (a.birthDayNumber > b.birthDayNumber) {
+							return 1
+						}
+					}
+					return 0 //default return value (no sorting)
+				})
+			}
+			
+
+			// Display names on screen and button click events
+			displayPeople();
+			$('#sortFamilyName').on('click', function () {
+				sortPeople('familyName');
+				displayPeople();
+			});
+			$('#sortFirstName').on('click', function () {
+				sortPeople('firstName');
+				displayPeople();
+			});
+			$('#sortBirthDate').on('click', function () {
+				sortPeople('birthDate');
+				displayPeople();
+			});
+			
+		
+		});
+		
+	</script>
+</body>
+</html>
